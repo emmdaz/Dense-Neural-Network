@@ -7,6 +7,38 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import SGD
 import numpy as np
 
+import wandb
+from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
+wandb.require("core")
+wandb.login()
+
+###############################################################################
+
+wandb.init(
+    project="Experiments Series 1.01",
+    config={
+        "Layer1": 256,
+        "Activation_1": "relu",
+        "Dropout1": "No dropout",
+        "Layer2": 256,
+        "Activation_2": "sigmoid",
+        "Dropout2": "No dropout",
+        "Layer3": 10,
+        "Activation_3": "softmax",
+        "Dropout3": "No dropout",
+        "Optimizer": "adam",
+        "Metric": "accuracy",
+        "Epoch": 30,
+        "Batch_size": 10,
+        "Eta": 1e-5,
+        "Loss": "binary_crossentropy"
+    }
+)
+
+config = wandb.config
+
+###############################################################################
+
 #Se carga la base de datos MNIST
 
 ds = mnist.load_data()
@@ -30,46 +62,51 @@ x_test /= 255.
 
 # Se realiza el one-hot enconding:
 
+# Se realiza el one-hot enconding:
+
 # Se definen el número de clases que hay en la base de datos
-classes = 10
+classes = config.Layer3
 
 # Se realiza la conversión:
 y_train = keras.utils.to_categorical(y_train,classes)
 y_test = keras.utils.to_categorical(y_test,classes)
 
-# Se configuran algunos aspectos del modelo:
-
-# Número de neuronas de la capa oculta
-n = 15
+# Se configuran los hiperparámetros del modelo:
 
 # Valor del Learning Rate
-eta = 3.0
+eta = config.Eta
 eta = float(eta) # Tiene que ser un dato de tipo flotante, pues de lo contrario
                  # tiene conflicto
 
 # Número de épocas
-epochs = 30
+epochs = config.Epoch
 
 # Tamaño del mini-batch
-mini_batch=10
+mini_batch= config.Batch_size
 
 # Se realiza la creación del modelo a como se había definido usando Numpy:
 model = Sequential([
-    Dense(n, activation='sigmoid', input_shape=(784,)),
-    Dense(classes, activation='sigmoid')
+    Dense(config.Layer1, activation = config.Activation_1, input_shape = (784,)),
+    Dense(config.Layer2, activation = config.Activation_2),
+    Dense(classes, activation = config.Activation_3)
 ])
-# El modelo es secuencial, se van uniendo neurona por neurona de forma 
-# consecutiva
+model.summary()
+# El modelo es secuencial, se van uniendo neurona por neurona de forma consecutiva
 
-model.compile(loss='binary_crossentropy',optimizer=SGD(learning_rate=eta),
-              metrics=['accuracy'])
+###############################################################################
+
+model.compile(loss=config.Loss, optimizer = config.Optimizer,
+              metrics=[config.Metric])
 
 history = model.fit(x_train, y_train,
                     batch_size = mini_batch,
                     epochs = epochs,
                     verbose = 1,
-                    validation_data = (x_test, y_test)
+                    validation_data = (x_test, y_test),
+                    callbacks=[WandbMetricsLogger(log_freq=5),
+                               WandbModelCheckpoint("models.keras")]
                     )
+wandb.finish()
 
 mod = model.predict(x_test)
 
