@@ -5,6 +5,7 @@ from tensorflow.keras.datasets import mnist
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import SGD
+from tensorflow.keras import regularizers
 import numpy as np
 
 import wandb
@@ -31,6 +32,7 @@ wandb.init(
         "Epoch": 30,
         "Batch_size": 10,
         "Eta": 1e-5,
+        "L1": 1e-4,
         "Loss": "binary_crossentropy"
     }
 )
@@ -62,8 +64,6 @@ x_test /= 255.
 
 # Se realiza el one-hot enconding:
 
-# Se realiza el one-hot enconding:
-
 # Se definen el número de clases que hay en la base de datos
 classes = config.Layer3
 
@@ -86,9 +86,12 @@ mini_batch= config.Batch_size
 
 # Se realiza la creación del modelo a como se había definido usando Numpy:
 model = Sequential([
-    Dense(config.Layer1, activation = config.Activation_1, input_shape = (784,)),
-    Dense(config.Layer2, activation = config.Activation_2),
-    Dense(classes, activation = config.Activation_3)
+    Dense(config.Layer1, activation = config.Activation_1, input_shape = (784,),
+          kernel_regularizer = regularizers.L1(config.L1)),
+    Dense(config.Layer2, activation = config.Activation_2,
+          kernel_regularizer = regularizers.L1(config.L1)),
+    Dense(classes, activation = config.Activation_3,
+          kernel_regularizer = regularizers.L1(config.L1))
 ])
 model.summary()
 # El modelo es secuencial, se van uniendo neurona por neurona de forma consecutiva
