@@ -20,13 +20,12 @@ wandb.init(
     config={
         "Layer1": 256,
         "Activation_1": "relu",
-        "Dropout1": "No dropout",
+        "Dropout1": 0.1,
         "Layer2": 256,
         "Activation_2": "sigmoid",
-        "Dropout2": "No dropout",
+        "Dropout2": 0.2,
         "Layer3": 10,
         "Activation_3": "softmax",
-        "Dropout3": "No dropout",
         "Optimizer": "adam",
         "Metric": "accuracy",
         "Epoch": 30,
@@ -87,11 +86,14 @@ mini_batch= config.Batch_size
 
 # Se realiza la creación del modelo a como se había definido usando Numpy:
 model = Sequential([
-    Dense(config.Layer1, activation = config.Activation_1, input_shape = (784,)),
-    Dropout(0.1),
-    Dense(config.Layer2, activation = config.Activation_2),
-    Dropout(0.2),
-    Dense(classes, activation = config.Activation_3)
+    Dense(config.Layer1, activation = config.Activation_1, input_shape = (784,),
+          kernel_regularizer = regularizers.L1L2(config.L1,config.L2)),
+    Dropout(config.Dropout1),
+    Dense(config.Layer2, activation = config.Activation_2,
+          kernel_regularizer = regularizers.L1L2(config.L1,config.L2)),
+    Dropout(config.Dropout2),
+    Dense(classes, activation = config.Activation_3,
+          kernel_regularizer = regularizers.L1L2(config.L1,config.L2))
 ])
 model.summary()
 # El modelo es secuencial, se van uniendo neurona por neurona de forma consecutiva
