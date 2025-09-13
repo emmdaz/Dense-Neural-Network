@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras import regularizers
 import numpy as np
@@ -87,12 +87,11 @@ mini_batch= config.Batch_size
 
 # Se realiza la creación del modelo a como se había definido usando Numpy:
 model = Sequential([
-    Dense(config.Layer1, activation = config.Activation_1, input_shape = (784,),
-          kernel_regularizer = regularizers.L1L2(config.L1,config.L2)),
-    Dense(config.Layer2, activation = config.Activation_2,
-          kernel_regularizer = regularizers.L1L2(config.L1,config.L2)),
-    Dense(classes, activation = config.Activation_3,
-          kernel_regularizer = regularizers.L1L2(config.L1,config.L2))
+    Dense(config.Layer1, activation = config.Activation_1, input_shape = (784,)),
+    Dropout(0.1),
+    Dense(config.Layer2, activation = config.Activation_2),
+    Dropout(0.2),
+    Dense(classes, activation = config.Activation_3)
 ])
 model.summary()
 # El modelo es secuencial, se van uniendo neurona por neurona de forma consecutiva
